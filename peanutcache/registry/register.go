@@ -22,8 +22,8 @@ var (
 	}
 )
 
-// etcdAdd 在租赁模式添加一对kv至etcd
-func etcdAdd(c *clientv3.Client, lid clientv3.LeaseID, service string, addr string) error {
+// etcdAdd 在租赁模式添加一对kv至etcd，或者说是将一个服务的地址注册到etcd中，lid是指租约
+func EtcdAdd(c *clientv3.Client, lid clientv3.LeaseID, service string, addr string) error {
 	em, err := endpoints.NewManager(c, service)
 	if err != nil {
 		return err
@@ -48,7 +48,7 @@ func Register(service string, addr string, stop chan error) error {
 	}
 	leaseId := resp.ID
 	// 注册服务
-	err = etcdAdd(cli, leaseId, service, addr)
+	err = EtcdAdd(cli, leaseId, service, addr)
 	if err != nil {
 		return fmt.Errorf("add etcd record failed: %v", err)
 	}
@@ -61,18 +61,21 @@ func Register(service string, addr string, stop chan error) error {
 	log.Printf("[%s] register service ok\n", addr)
 	for {
 		select {
+		// stop通道有错误信息传入，结束服务注册
 		case err := <-stop:
 			if err != nil {
 				log.Println(err)
 			}
 			return err
+		// etcd客户端的上下文被取消，结束服务注册
 		case <-cli.Ctx().Done():
 			log.Println("service closed")
 			return nil
+		// 监听租约	
 		case _, ok := <-ch:
-			// 监听租约
 			if !ok {
 				log.Println("keep alive channel closed")
+				// 撤销租约并返回错误
 				_, err := cli.Revoke(context.Background(), leaseId)
 				return err
 			}

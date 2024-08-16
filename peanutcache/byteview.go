@@ -29,6 +29,7 @@ func (v ByteView) Len() int {
 }
 
 // ByteSlice 返回一份[]byte的副本（深拷贝）
+// 浅拷贝是引用拷贝，深拷贝是值拷贝
 func (v ByteView) ByteSlice() []byte {
 	return cloneBytes(v.b)
 }

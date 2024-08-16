@@ -6,12 +6,14 @@ package peanutcache
 
 // cache 模块负责提供对lru模块的并发控制
 
+
+
 import (
-	"github.com/peanutzhen/peanutcache/lru"
+	"peanutcache/lru"
 	"sync"
 )
 
-// 这样设计可以进行cache和算法的分离，比如我现在实现了lfu缓存模块
+// 这样设计可以进行cache和算法的分离，比如我现在实现了lru缓存模块
 // 只需替换cache成员即可
 type cache struct {
 	mu       sync.Mutex

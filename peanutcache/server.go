@@ -7,9 +7,9 @@ package peanutcache
 import (
 	"context"
 	"fmt"
-	"github.com/peanutzhen/peanutcache/consistenthash"
-	pb "github.com/peanutzhen/peanutcache/peanutcachepb"
-	"github.com/peanutzhen/peanutcache/registry"
+	"peanutcache/consistenthash"
+	pb "peanutcache/peanutcachepb"
+	"peanutcache/registry"
 	"log"
 	"net"
 	"strings"
@@ -30,20 +30,23 @@ const (
 )
 
 var (
+	// clientv3.Config是etcd中用户配置etcd客户端连接参数的一种结构体
 	defaultEtcdConfig = clientv3.Config{
+		// 一个字符串切片，包含etcd集群的地址，在这里，["localhost:2379"]表示etcd服务运行在2379端口
 		Endpoints:   []string{"localhost:2379"},
+		// 用于设置客户端与etcd服务建立连接时的超时时间
 		DialTimeout: 5 * time.Second,
 	}
 )
 
 // server 和 Group 是解耦合的 所以server要自己实现并发控制
 type server struct {
-	pb.UnimplementedPeanutCacheServer
+	pb.UnimplementedPeanutCacheServer //gRPC自动生成的服务接口
 
 	addr       string     // format: ip:port
 	status     bool       // true: running false: stop
 	stopSignal chan error // 通知registry revoke服务
-	mu         sync.Mutex
+	mu         sync.Mutex // 控制status的关闭和打开 and clients
 	consHash   *consistenthash.Consistency
 	clients    map[string]*client
 }
@@ -149,6 +152,7 @@ func (s *server) SetPeers(peersAddr ...string) {
 			panic(fmt.Sprintf("[peer %s] invalid address format, it should be x.x.x.x:port", peerAddr))
 		}
 		service := fmt.Sprintf("peanutcache/%s", peerAddr)
+		// 分布式集群中每个节点互为客户端和服务器，C/S模式
 		s.clients[peerAddr] = NewClient(service)
 	}
 }
@@ -178,8 +182,8 @@ func (s *server) Stop() {
 	}
 	s.stopSignal <- nil // 发送停止keepalive信号
 	s.status = false // 设置server运行状态为stop
-	s.clients = nil // 清空一致性哈希信息 有助于垃圾回收
-	s.consHash = nil
+	s.clients = nil  // 清空clients
+	s.consHash = nil // 清空一致性哈希信息 有助于垃圾回收
 	s.mu.Unlock()
 }
 

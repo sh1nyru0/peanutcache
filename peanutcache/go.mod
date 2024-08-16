@@ -1,4 +1,4 @@
-module github.com/peanutzhen/peanutcache
+module peanutcache
 
 go 1.16
 

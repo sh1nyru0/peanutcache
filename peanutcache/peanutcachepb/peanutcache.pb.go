@@ -3,7 +3,6 @@
 // 	protoc-gen-go v1.27.1
 // 	protoc        v3.17.3
 // source: peanutcachepb/peanutcache.proto
-
 package peanutcachepb
 
 import (
@@ -24,7 +23,7 @@ type GetRequest struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
-
+	
 	Group string `protobuf:"bytes,1,opt,name=group,proto3" json:"group,omitempty"`
 	Key   string `protobuf:"bytes,2,opt,name=key,proto3" json:"key,omitempty"`
 }

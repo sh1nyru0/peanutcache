@@ -7,8 +7,8 @@ package peanutcache
 import (
 	"context"
 	"fmt"
-	pb "github.com/peanutzhen/peanutcache/peanutcachepb"
-	"github.com/peanutzhen/peanutcache/registry"
+	pb "peanutcache/peanutcachepb"
+	"peanutcache/registry"
 	"time"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
@@ -34,8 +34,8 @@ func (c *client) Fetch(group string, key string) ([]byte, error) {
 		return nil, err
 	}
 	defer conn.Close()
-	grpcClient := pb.NewPeanutCacheClient(conn)
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	grpcClient := pb.NewPeanutCacheClient(conn) // 与PeanucCache服务交互的接口
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second) // 创建了一个10s超时的上下文
 	defer cancel()
 	resp, err := grpcClient.Get(ctx, &pb.GetRequest{
 		Group: group,

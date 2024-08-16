@@ -54,12 +54,15 @@ func New(maxBytes int64, callback OnEliminated) *Cache {
 func (c *Cache) Get(key string) (value Lengthable, ok bool) {
 	if elem, ok := c.hashmap[key]; ok {
 		c.doublyLinkedList.MoveToFront(elem)
+		// Value是*list.Element结构体的一个字段，类型为interface{}
+		// *Value是一个类型断言，将elem.Value转换为具体的*Value类型
 		entry := elem.Value.(*Value)
 		return entry.value, true
 	}
 	return
 }
 
+// 添加key value
 func (c *Cache) Add(key string, value Lengthable) {
 	kvSize := int64(len(key)) + int64(value.Len())
 	// cache 容量检查

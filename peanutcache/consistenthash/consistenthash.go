@@ -28,7 +28,7 @@ type Consistency struct {
 func (c *Consistency) Register(peersName ...string) {
 	for _, peerName := range peersName {
 		for i := 0; i < c.replicas; i++ {
-			hashValue := int(c.hash([]byte(strconv.Itoa(i)+peerName)))
+			hashValue := int(c.hash([]byte(strconv.Itoa(i)+peerName))) // 同一节点的不同虚拟节点
 			c.ring = append(c.ring, hashValue)
 			c.hashmap[hashValue] = peerName
 		}
@@ -45,7 +45,9 @@ func (c *Consistency) GetPeer(key string) string {
 	idx := sort.Search(len(c.ring), func(i int) bool {
 		return c.ring[i] >= hashValue
 	})
-	return c.hashmap[c.ring[idx%len(c.ring)]]
+	// 找到第一个比hashValue大的节点
+	return c.hashmap[c.ring[idx%len(c.ring)]] 
+	// 返回这个节点的peerName
 }
 
 func New(replicas int, fn HashFunc) *Consistency {

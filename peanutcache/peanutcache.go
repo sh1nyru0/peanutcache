@@ -6,7 +6,7 @@ package peanutcache
 
 import (
 	"fmt"
-	"github.com/peanutzhen/peanutcache/singlefilght"
+	"peanutcache/singleflight"
 	"log"
 	"sync"
 )
@@ -21,6 +21,7 @@ var (
 
 // Retriever 要求对象实现从数据源获取数据的能力
 type Retriever interface {
+	// 回调函数
 	retrieve(string) ([]byte, error)
 }
 
@@ -38,7 +39,7 @@ type Group struct {
 	cache     *cache
 	retriever Retriever
 	server    Picker
-	flight    *singlefilght.Flight
+	flight    *singleflight.Flight
 }
 
 // NewGroup 创建一个新的缓存空间
@@ -50,7 +51,7 @@ func NewGroup(name string, maxBytes int64, retriever Retriever) *Group {
 		name:      name,
 		cache:     newCache(maxBytes),
 		retriever: retriever,
-		flight:    &singlefilght.Flight{},
+		flight:    &singleflight.Flight{},
 	}
 	mu.Lock()
 	groups[name] = g
@@ -68,6 +69,7 @@ func (g *Group) RegisterSvr(p Picker) {
 
 // GetGroup 获取对应命名空间的缓存
 func GetGroup(name string) *Group {
+	// RLock可以同时读，但是不能写
 	mu.RLock()
 	g := groups[name]
 	mu.RUnlock()

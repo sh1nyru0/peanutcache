@@ -36,6 +36,6 @@ func TestConsistency_GetPeer(t *testing.T) {
 	for _, v := range c.ring {
 		log.Printf("%d -> %s\n", v, c.hashmap[v])
 	}
-	peer:=c.GetPeer(key)
+	peer := c.GetPeer(key)
 	log.Printf("Go to search -> %s\n", peer)
 }
